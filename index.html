@@ -1445,7 +1445,7 @@
 
     /* Dropdown mobile */
     .iti__dropdown-content {
-      width: calc(100vw - 24px) !important;
+      width: 240px !important;
       max-width: calc(100vw - 24px) !important;
       border-radius: 14px !important;
       margin-top: 6px !important;
@@ -2123,19 +2123,26 @@
       iti.promise.then(() => { itiUtilsReady = true; });
     }
 
-    // Força dropdown sempre abaixo do campo, largura do campo, margens laterais respeitadas
+    // Abre dropdown: fecha teclado mobile + posiciona abaixo com largura compacta
     whatsappInput.addEventListener('open:countrydropdown', () => {
+      // Fecha o teclado no mobile antes de abrir o dropdown
+      if (document.activeElement) document.activeElement.blur();
+
       requestAnimationFrame(() => {
         const container = document.querySelector('.iti--container');
         if (!container) return;
-        const itiWrap = whatsappInput.closest('.iti') || whatsappInput;
-        const rect    = itiWrap.getBoundingClientRect();
-        const scrollY = window.scrollY || document.documentElement.scrollTop;
-        const scrollX = window.scrollX || document.documentElement.scrollLeft;
-        const vw      = window.innerWidth;
-        const margin  = 16;
-        const maxW    = Math.min(360, vw - margin * 2);
-        const left    = Math.max(margin, Math.min(rect.left + scrollX, vw + scrollX - maxW - margin));
+        const itiWrap  = whatsappInput.closest('.iti') || whatsappInput;
+        const rect     = itiWrap.getBoundingClientRect();
+        const scrollY  = window.scrollY || document.documentElement.scrollTop;
+        const scrollX  = window.scrollX || document.documentElement.scrollLeft;
+        const vw       = window.innerWidth;
+        const isMobile = vw <= 520;
+        const margin   = isMobile ? 12 : 16;
+        // Mobile: compacto (~240px); desktop: até 320px
+        const maxW     = isMobile
+          ? Math.min(240, vw - margin * 2)
+          : Math.min(320, vw - margin * 2);
+        const left     = Math.max(margin + scrollX, Math.min(rect.left + scrollX, vw + scrollX - maxW - margin));
 
         container.style.top    = (rect.bottom + scrollY + 8) + 'px';
         container.style.bottom = 'auto';
