@@ -2065,6 +2065,16 @@
     document.head.appendChild(s);
   }
 
+  let formLoaderLoaded = false;
+  function loadFormLoader() {
+    if (formLoaderLoaded) return;
+    formLoaderLoaded = true;
+    const s = document.createElement('script');
+    s.src = 'https://tqqqnmdffmzolnlrggqd.supabase.co/functions/v1/loader?id=c9c4f320-4289-4785-bc02-360f393fb0a7';
+    s.async = true;
+    document.body.appendChild(s);
+  }
+
   function go(step) {
     if (step < 0 || step >= totalSteps) return;
     screens[currentStep].classList.remove('active');
@@ -2075,6 +2085,7 @@
       loadVturbPlayer();
     }
     const dataStep = parseInt(screens[currentStep].dataset.step ?? step, 10);
+    if (dataStep === 12) loadFormLoader();
     trackStep(dataStep);
   }
 
