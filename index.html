@@ -169,7 +169,7 @@
 
   h1.headline {
     font-family: 'Instrument Serif', serif;
-    font-size: clamp(34px, 5.4vw, 56px);
+    font-size: clamp(40px, 5.8vw, 60px);
     line-height: 1.05;
     letter-spacing: -0.02em;
     margin-bottom: 28px;
@@ -178,7 +178,7 @@
 
   h2.question {
     font-family: 'Instrument Serif', serif;
-    font-size: clamp(28px, 4.2vw, 42px);
+    font-size: clamp(32px, 4.6vw, 46px);
     line-height: 1.1;
     letter-spacing: -0.015em;
     font-weight: 400;
@@ -412,7 +412,7 @@
 
   .info-card .info-title {
     font-family: 'Instrument Serif', serif;
-    font-size: clamp(26px, 3.5vw, 36px);
+    font-size: clamp(30px, 3.8vw, 40px);
     line-height: 1.15;
     letter-spacing: -0.015em;
     margin-bottom: 20px;
@@ -920,7 +920,7 @@
 
   .loading-title {
     font-family: 'Instrument Serif', serif;
-    font-size: clamp(26px, 3.5vw, 34px);
+    font-size: clamp(30px, 3.8vw, 38px);
     line-height: 1.15;
     letter-spacing: -0.015em;
     margin-bottom: 12px;
@@ -1088,48 +1088,195 @@
   }
 
   /* ===== Mobile ===== */
+  /* ===== Mobile ===== */
   @media (max-width: 640px) {
-    .topbar {
-      padding: 16px 18px;
-      gap: 14px;
-    }
-
-    .brand {
-      font-size: 18px;
-    }
-
     main {
-      padding: 28px 18px 60px;
+      padding: 28px 16px 48px;
+    }
+
+    .screen {
+      max-width: 100%;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      padding: 6px 12px;
+      margin-bottom: 18px;
+    }
+
+    .benefits {
+      margin-bottom: 32px;
+    }
+
+    .benefits li {
+      font-size: 15px;
+      gap: 12px;
     }
 
     .info-card {
       padding: 28px 22px;
-      border-radius: 18px;
+      border-radius: 20px;
+    }
+
+    .info-card .info-text {
+      font-size: 15px;
     }
 
     .option-card {
-      padding: 16px 18px;
-      gap: 14px;
+      padding: 15px 16px;
+      gap: 12px;
+      border-radius: 14px;
+    }
+
+    .option-letter {
+      width: 26px;
+      height: 26px;
+      font-size: 13px;
+      border-radius: 7px;
     }
 
     .option-text {
       font-size: 15px;
     }
 
+    .options {
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    /* Nav row: side-by-side back + CTA, with back as a compact icon button */
+    .nav-row {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    /* Compact icon-only back button on mobile.
+       The existing "← Voltar" text is hidden by zeroing the font-size,
+       and the arrow is re-injected via ::before. */
+    .back-btn {
+      flex: 0 0 auto;
+      padding: 0;
+      width: 52px;
+      height: 52px;
+      border: 1.5px solid rgba(0,0,0,0.08);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--black);
+      font-size: 0;
+      line-height: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .back-btn::before {
+      content: '←';
+      font-size: 20px;
+      line-height: 1;
+      color: var(--black);
+    }
+
+    .back-btn:hover,
+    .back-btn:active {
+      background: var(--cream);
+      border-color: rgba(0,0,0,0.18);
+    }
+
+    .back-btn:active {
+      transform: scale(0.96);
+    }
+
     .cta {
-      padding: 16px 26px;
+      flex: 1;
+      padding: 0 22px;
+      height: 52px;
       font-size: 15px;
-      width: 100%;
       justify-content: center;
     }
 
-    .nav-row {
-      flex-direction: column-reverse;
-      align-items: stretch;
+    /* Form fields */
+    .form-fields {
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .field input {
+      padding: 16px 18px;
+    }
+
+    .field .iti__tel-input {
+      height: 56px;
+      padding: 0 18px 0 124px;
+    }
+
+    .field .iti--separate-dial-code .iti__country-container {
+      width: 104px;
+      top: 5px;
+      left: 5px;
+      bottom: 5px;
+    }
+
+    /* VSL screen */
+    .vsl-player {
+      max-width: 100%;
+      margin-top: 24px;
+    }
+
+    .vsl-cta-wrap {
+      margin-top: 40px;
+    }
+
+    /* Loading screen */
+    .loading-card {
+      padding: 36px 22px 32px;
+      border-radius: 22px;
+    }
+
+    .loading-orb {
+      width: 76px;
+      height: 76px;
+      margin-bottom: 22px;
+    }
+
+    .loading-steps li {
+      font-size: 14px;
+      padding: 7px 0;
+    }
+
+    /* Avatars in the proof screen */
+    .avatars .avatar {
+      width: 36px;
+      height: 36px;
+      font-size: 13px;
+    }
+
+    /* Honor iOS safe-area insets at the bottom */
+    main {
+      padding-bottom: max(48px, env(safe-area-inset-bottom));
+    }
+  }
+
+  /* Very small screens */
+  @media (max-width: 380px) {
+    main {
+      padding: 22px 14px 44px;
     }
 
     .back-btn {
-      text-align: center;
+      width: 48px;
+      height: 48px;
+    }
+
+    .cta {
+      height: 48px;
+      font-size: 14.5px;
+      padding: 0 18px;
+      gap: 8px;
     }
   }
 </style>
