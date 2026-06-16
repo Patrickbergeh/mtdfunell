@@ -292,6 +292,7 @@
   .type-capture { background: #fef3c7; color: #b45309; }
   .type-vsl { background: #f3e8ff; color: #7e22ce; }
   .type-start { background: #f1f5f9; color: #475569; }
+  .type-checkout { background: #dcfce7; color: #15803d; font-weight: 800; }
 
   .funnel-bar-wrap {
     height: 10px;
@@ -587,7 +588,6 @@
 
       <div class="leads-toolbar">
         <input class="search-input" id="search-input" placeholder="Buscar por nome, e-mail ou Instagram…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-        <span id="leads-count" style="font-size:13px;color:var(--muted);white-space:nowrap"></span>
       </div>
 
       <div class="leads-wrap">
@@ -642,6 +642,7 @@ const STEPS = [
   { step: 12, label: 'Formulário de captura',           type: 'capture' },
   { step: 13, label: 'Loading / diagnóstico',           type: 'info'    },
   { step: 14, label: 'VSL',                             type: 'vsl'     },
+  { step: 15, label: 'Clique no checkout',              type: 'checkout'},
 ];
 
 const ANSWER_LABELS = {
@@ -775,7 +776,7 @@ function renderFunnel(counts) {
       dropHtml = `<span class="${cls}">−${drop}%</span>`;
     }
 
-    const typeLabel = { q: 'Pergunta', info: 'Info', capture: 'Captura', vsl: 'VSL', start: 'Início' }[s.type];
+    const typeLabel = { q: 'Pergunta', info: 'Info', capture: 'Captura', vsl: 'VSL', start: 'Início', checkout: 'Checkout' }[s.type];
 
     container.insertAdjacentHTML('beforeend', `
       <div class="funnel-row">
@@ -802,7 +803,6 @@ function renderFunnel(counts) {
 ══════════════════════════════════════════ */
 function renderLeads(leads) {
   const tbody = document.getElementById('leads-tbody');
-  document.getElementById('leads-count').textContent = `${leads.length} lead${leads.length !== 1 ? 's' : ''}`;
 
   if (leads.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="state-msg">Nenhum lead encontrado</div></td></tr>`;

@@ -1972,7 +1972,7 @@
         <vturb-smartplayer id="vid-6a2d4c93f1639bbd69b19b8c" style="display: block; margin: 0 auto; width: 100%;"></vturb-smartplayer>
       </div>
       <div class="vsl-cta-wrap">
-        <a href="https://payfast.greenn.com.br/45497/offer/Gf3z44" target="_blank" rel="noopener" class="cta">
+        <a href="https://payfast.greenn.com.br/45497/offer/Gf3z44" target="_blank" rel="noopener" class="cta checkout-cta">
           Quero saber como começar
           <span class="arrow">→</span>
         </a>
@@ -2038,7 +2038,7 @@
         </div>
 
         <div class="vsl-cta-wrap proof-cta">
-          <a href="https://payfast.greenn.com.br/45497/offer/Gf3z44" target="_blank" rel="noopener" class="cta">
+          <a href="https://payfast.greenn.com.br/45497/offer/Gf3z44" target="_blank" rel="noopener" class="cta checkout-cta">
             Quero esses resultados também
             <span class="arrow">→</span>
           </a>
@@ -2361,6 +2361,11 @@
       submitCapture.style.opacity = '';
     });
   }
+
+  // Track checkout button clicks (step 15)
+  document.querySelectorAll('.checkout-cta').forEach(btn => {
+    btn.addEventListener('click', () => trackStep(15));
+  });
 
 </script>
 </body>
