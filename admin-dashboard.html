@@ -729,12 +729,24 @@ async function loadLeads() {
 
   allLeads = data || [];
   renderLeads(allLeads);
+  updateLeadKpis();
 }
 
 /* ══════════════════════════════════════════
    RENDER — FUNNEL
 ══════════════════════════════════════════ */
+let lastFunnelCounts = {};
+
+function updateLeadKpis() {
+  const totalVisitors = lastFunnelCounts[0] || 0;
+  const totalLeads    = allLeads.length;
+  const cvr           = totalVisitors > 0 ? ((totalLeads / totalVisitors) * 100).toFixed(1) + '%' : '—';
+  document.getElementById('kpi-leads').textContent = fmt(totalLeads);
+  document.getElementById('kpi-cvr').textContent   = cvr;
+}
+
 function renderFunnel(counts) {
+  lastFunnelCounts = counts;
   const totalVisitors = counts[0] || 0;
   const totalLeads    = allLeads.length;
   const vslCount      = counts[14] || 0;
