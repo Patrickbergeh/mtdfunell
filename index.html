@@ -15,6 +15,13 @@
 <link rel="dns-prefetch" href="https://images.converteai.net">
 <link rel="dns-prefetch" href="https://license.vturb.com">
 
+<!-- Hero images: preconnect + preload para carregar antes do render -->
+<link rel="preconnect" href="https://eojzqiasvmeeokjgmgue.supabase.co" crossorigin>
+<link rel="preload" as="image" media="(min-width: 521px)"
+  href="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/CAROL.NM.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvQ0FST0wuTk0ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MTYyNTcxNCwiZXhwIjoxODEzMTYxNzE0fQ.btPcpMjdZ6XHeZJs5ezIIlzDdhxHkMh3pDk9mrEBIM0">
+<link rel="preload" as="image" media="(max-width: 520px)"
+  href="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/ddd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvZGRkLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE2MjU3NzUsImV4cCI6MTgxMzE2MTc3NX0.8ppL3T5eJmZf976MJsPivy5exMZSBdrBXcrSER1Wf8s">
+
 <!-- Intl tel input: country dial code + SVG flags -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/css/intlTelInput.css">
 <style>
@@ -165,6 +172,24 @@
     height: 6px;
     border-radius: 50%;
     background: var(--gold);
+  }
+
+  /* Hero image — first screen only */
+  .hero-img {
+    display: block;
+    width: 100%;
+    margin-bottom: 36px;
+    border-radius: 18px;
+    overflow: hidden;
+    line-height: 0;
+  }
+
+  .hero-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    border-radius: 18px;
   }
 
   h1.headline {
@@ -1259,6 +1284,15 @@
       max-width: 100%;
     }
 
+    .hero-img {
+      margin-bottom: 28px;
+      border-radius: 14px;
+    }
+
+    .hero-img img {
+      border-radius: 14px;
+    }
+
     .eyebrow {
       font-size: 11px;
       padding: 6px 12px;
@@ -1471,6 +1505,10 @@
   <main id="main">
     <!-- ====== STEP 1: PORTA DE ENTRADA ====== -->
     <section class="screen active" data-step="0">
+      <picture class="hero-img">
+        <source media="(max-width: 520px)" srcset="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/ddd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvZGRkLnBuZyIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE2MjU3NzUsImV4cCI6MTgxMzE2MTc3NX0.8ppL3T5eJmZf976MJsPivy5exMZSBdrBXcrSER1Wf8s">
+        <img src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/CAROL.NM.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvQ0FST0wuTk0ucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MTYyNTcxNCwiZXhwIjoxODEzMTYxNzE0fQ.btPcpMjdZ6XHeZJs5ezIIlzDdhxHkMh3pDk9mrEBIM0" alt="" loading="eager" decoding="sync" fetchpriority="high">
+      </picture>
       <h1 class="headline">Você sabe quanto o seu conhecimento pode valer hoje?</h1>
       <p class="lead">Faça esse diagnóstico rápido e descubra como transformar o que você já sabe em uma mentoria que vende.</p>
       <ul class="benefits">
