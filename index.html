@@ -624,7 +624,6 @@
     width: 100%;
     display: block;
     position: relative;
-    overflow: visible;
   }
 
   /* Phone input — padding-left set dynamically by intl-tel-input JS */
@@ -770,14 +769,12 @@
     opacity: 1 !important;
   }
 
-  /* ── Dropdown panel — inside .iti, always opens below ── */
-  .field .iti .iti__dropdown-content,
+  /* ── Dropdown panel — anchored below via JS reposition ── */
+  .iti--container {
+    z-index: 9990;
+  }
+
   .iti__dropdown-content {
-    position: absolute !important;
-    top: 100% !important;
-    bottom: auto !important;
-    left: 0 !important;
-    z-index: 100 !important;
     border-radius: 16px !important;
     border: 1px solid rgba(0,0,0,0.09) !important;
     box-shadow:
@@ -1427,12 +1424,8 @@
       font-size: 14px !important;
     }
 
-    /* Dropdown — sempre abaixo no mobile */
-    .field .iti .iti__dropdown-content,
+    /* Dropdown mobile */
     .iti__dropdown-content {
-      position: absolute !important;
-      top: 100% !important;
-      bottom: auto !important;
       width: calc(100vw - 24px) !important;
       max-width: calc(100vw - 24px) !important;
       border-radius: 14px !important;
@@ -2103,12 +2096,28 @@
       countrySearch: true,
       formatAsYouType: true,
       strictMode: false,
+      dropdownContainer: document.body,
       loadUtils: () => import('https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/js/utils.js'),
     });
 
     if (iti && iti.promise) {
       iti.promise.then(() => { itiUtilsReady = true; });
     }
+
+    // Força o dropdown sempre abaixo do campo — impede o flip-to-above no mobile
+    whatsappInput.addEventListener('open:countrydropdown', () => {
+      requestAnimationFrame(() => {
+        const container = document.querySelector('.iti--container');
+        if (!container) return;
+        const itiWrap = whatsappInput.closest('.iti') || whatsappInput;
+        const rect = itiWrap.getBoundingClientRect();
+        const scrollY = window.scrollY || document.documentElement.scrollTop;
+        const scrollX = window.scrollX || document.documentElement.scrollLeft;
+        container.style.top    = (rect.bottom + scrollY + 8) + 'px';
+        container.style.bottom = 'auto';
+        container.style.left   = (rect.left + scrollX) + 'px';
+      });
+    });
   }
 
   function isPhoneValid(rawValue) {
