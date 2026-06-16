@@ -1087,8 +1087,147 @@
     text-decoration: none;
   }
 
+  /* ===== Proof / depoimentos section (segunda seção da página) ===== */
+  .proof-section {
+    margin-top: 96px;
+    width: calc(100% + 40px);
+    max-width: 980px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    padding-top: 56px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .proof-header {
+    text-align: center;
+    margin-bottom: 44px;
+    padding: 0 16px;
+  }
+
+  .proof-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: var(--cream);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 99px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(0,0,0,0.7);
+    margin-bottom: 20px;
+  }
+
+  .proof-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  .proof-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(32px, 4vw, 44px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+    font-weight: 400;
+  }
+
+  .proof-sub {
+    font-size: clamp(15px, 1.5vw, 17px);
+    color: rgba(0,0,0,0.6);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .proof-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 0 8px;
+  }
+
+  .proof-card {
+    margin: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--cream);
+    box-shadow:
+      0 10px 30px -12px rgba(0,0,0,0.18),
+      0 2px 6px -2px rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.25s ease;
+    aspect-ratio: 3 / 4;
+    position: relative;
+  }
+
+  .proof-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, rgba(221,187,145,0.18), rgba(221,187,145,0));
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+  }
+
+  .proof-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 18px 40px -12px rgba(0,0,0,0.25),
+      0 4px 10px -4px rgba(0,0,0,0.1);
+  }
+
+  .proof-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    position: relative;
+    z-index: 0;
+  }
+
+  .proof-cta {
+    margin-top: 48px;
+  }
+
   /* ===== Mobile ===== */
-  /* ===== Mobile ===== */
+  @media (max-width: 760px) {
+    .proof-section {
+      margin-top: 64px;
+      padding-top: 40px;
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+      transform: none;
+    }
+
+    .proof-header {
+      margin-bottom: 32px;
+    }
+
+    .proof-grid {
+      grid-template-columns: 1fr;
+      gap: 18px;
+      max-width: 380px;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .proof-card {
+      aspect-ratio: auto;
+    }
+
+    .proof-cta {
+      margin-top: 36px;
+    }
+  }
+
   @media (max-width: 640px) {
     main {
       padding: 28px 1.45em 48px;
@@ -1735,6 +1874,73 @@
           <span class="arrow">→</span>
         </a>
       </div>
+
+      <!-- ====== SEGUNDA SEÇÃO: depoimentos / prints de resultado ====== -->
+      <section class="proof-section" aria-labelledby="proof-title">
+        <header class="proof-header">
+          <span class="proof-eyebrow"><span class="proof-dot"></span> Resultados reais</span>
+          <h2 id="proof-title" class="proof-title">Mentoradas faturando alto<br>com o que já sabiam</h2>
+          <p class="proof-sub">Mensagens reais que chegaram depois que aplicaram a estrutura.</p>
+        </header>
+
+        <div class="proof-grid">
+          <figure class="proof-card">
+            <img
+              src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/DP1%201.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvRFAxIDEud2VicCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE1NzcyNzAsImV4cCI6MTgxMzExMzI3MH0.UsQFNHIBTLmOFVRqxkj1uAsIyAF0Xhd810Q9JFKop1E"
+              alt="Depoimento: 3 vendas em uma semana — 5K, 7K e 8K"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </figure>
+          <figure class="proof-card">
+            <img
+              src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/DP2%201.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvRFAyIDEud2VicCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE1NzcyNzgsImV4cCI6MTgxMzExMzI3OH0.Dq_74hkk1I2fJp9o8DXxFubaL-WLn7uRlz26vC8ir9k"
+              alt="Depoimento: faturamento de março de R$ 23.150,00"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </figure>
+          <figure class="proof-card">
+            <img
+              src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/DP3%201.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvRFAzIDEud2VicCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE1NzcyODcsImV4cCI6MTgxMzExMzI4N30.aRiUqNubFXgl9KEjjyQWUacONCX7xb6jveWT7IpRdDQ"
+              alt="Painel: receita R$ 25.445,18 nos últimos 30 dias"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </figure>
+          <figure class="proof-card">
+            <img
+              src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/DP4%201.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvRFA0IDEud2VicCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE1NzcyOTcsImV4cCI6MTgxMzExMzI5N30.cY6B1xMr3M8ty6KWNfwi-hJo1IS4AAna_ZdTiCgzWyc"
+              alt="Depoimento: aluna aplicando a metodologia única"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </figure>
+          <figure class="proof-card">
+            <img
+              src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/DP6%201.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvRFA2IDEud2VicCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE1NzczMDYsImV4cCI6MTgxMzExMzMwNn0.97bNgrF0t30Xaqhddr7vAud8MBUD_YLN077XBRAYxYM"
+              alt="Depoimento: subiu mentoria pra 6 mil e 3 vendas na semana"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </figure>
+          <figure class="proof-card">
+            <img
+              src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/DP7%201.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvRFA3IDEud2VicCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODE1NzczMTQsImV4cCI6MTgxMzExMzMxNH0.azOSu2gBgmawaps3IYmd7eDj1aAA1jQxCO3EVoTwY6M"
+              alt="Depoimento: R$ 82.871,32 em 14 dias com 15 mentoradas"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            />
+          </figure>
+        </div>
+
+        <div class="vsl-cta-wrap proof-cta">
+          <a href="https://payfast.greenn.com.br/45497/offer/Gf3z44" target="_blank" rel="noopener" class="cta">
+            Quero esses resultados também
+            <span class="arrow">→</span>
+          </a>
+        </div>
+      </section>
     </section>
   </main>
 </div>
