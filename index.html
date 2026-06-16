@@ -2182,14 +2182,24 @@
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvanpxaWFzdm1lZW9ramdtZ3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODE3NDIsImV4cCI6MjA5NDY1Nzc0Mn0.zuPbysNJJ4D3cN-Jl7IXF_vWG75s1v9rKTg2vCfHeLo';
   const SB_HEADERS = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
 
-  // Unique session per visit — persisted so refresh keeps same session
-  let sessionId = sessionStorage.getItem('mdt_session');
+  // Persistent device ID — localStorage so same device = same ID across tabs/sessions
+  let sessionId = localStorage.getItem('mdt_session');
   if (!sessionId) {
     sessionId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
-    sessionStorage.setItem('mdt_session', sessionId);
+    localStorage.setItem('mdt_session', sessionId);
+  }
+
+  // Track which steps already fired on this device — never double-count
+  function _trackedSteps() {
+    try { return new Set(JSON.parse(localStorage.getItem('mdt_steps') || '[]')); }
+    catch (_) { return new Set(); }
   }
 
   function trackStep(step) {
+    const tracked = _trackedSteps();
+    if (tracked.has(step)) return;
+    tracked.add(step);
+    try { localStorage.setItem('mdt_steps', JSON.stringify([...tracked])); } catch (_) {}
     fetch(SB_URL + '/rest/v1/funnel_events', {
       method: 'POST',
       headers: SB_HEADERS,
