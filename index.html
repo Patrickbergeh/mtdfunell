@@ -2197,11 +2197,27 @@
     }).catch(() => {});
   }
 
-  function saveLead(data) {
-    return fetch(SB_URL + '/rest/v1/leads', {
+  async function saveLead(data) {
+    const base = SB_URL + '/rest/v1/leads';
+    // Look for existing lead by email OR whatsapp
+    const q = `or=(email.eq.${encodeURIComponent(data.email)},whatsapp.eq.${encodeURIComponent(data.whatsapp)})`;
+    const existing = await fetch(`${base}?${q}&limit=1`, { headers: SB_HEADERS })
+      .then(r => r.json()).catch(() => []);
+
+    if (Array.isArray(existing) && existing.length > 0) {
+      const lead = existing[0];
+      const touchpoints = (lead.touchpoints || 1) + 1;
+      return fetch(`${base}?id=eq.${lead.id}`, {
+        method: 'PATCH',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ ...data, session_id: sessionId, touchpoints }),
+      }).catch(() => {});
+    }
+
+    return fetch(base, {
       method: 'POST',
       headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ ...data, session_id: sessionId }),
+      body: JSON.stringify({ ...data, session_id: sessionId, touchpoints: 1 }),
     }).catch(() => {});
   }
 

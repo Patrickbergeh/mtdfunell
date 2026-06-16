@@ -447,6 +447,17 @@
     color: var(--black);
   }
 
+  .tp-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .tp-once { background: var(--bg); color: var(--muted); }
+  .tp-multi { background: #fef3c7; color: #92400e; }
+
   /* Empty + loading states */
   .state-msg {
     text-align: center;
@@ -589,10 +600,11 @@
               <th>Instagram</th>
               <th>Respostas</th>
               <th>Data</th>
+              <th>Touchpoints</th>
             </tr>
           </thead>
           <tbody id="leads-tbody">
-            <tr><td colspan="6"><div class="state-msg"><div class="spinner"></div>Carregando…</div></td></tr>
+            <tr><td colspan="7"><div class="state-msg"><div class="spinner"></div>Carregando…</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -781,7 +793,7 @@ function renderLeads(leads) {
   document.getElementById('leads-count').textContent = `${leads.length} lead${leads.length !== 1 ? 's' : ''}`;
 
   if (leads.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="state-msg">Nenhum lead encontrado</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="state-msg">Nenhum lead encontrado</div></td></tr>`;
     return;
   }
 
@@ -791,6 +803,10 @@ function renderLeads(leads) {
     const date = lead.created_at
       ? new Date(lead.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
       : '—';
+    const tp = lead.touchpoints || 1;
+    const tpBadge = tp > 1
+      ? `<span class="tp-badge tp-multi">${tp}×</span>`
+      : `<span class="tp-badge tp-once">1×</span>`;
 
     return `
       <tr data-idx="${i}" class="lead-row">
@@ -800,9 +816,10 @@ function renderLeads(leads) {
         <td>${esc(lead.instagram || '—')}</td>
         <td><span class="badge">${answerCount} respostas</span></td>
         <td>${date}</td>
+        <td>${tpBadge}</td>
       </tr>
       <tr class="answers-row" data-for="${i}">
-        <td colspan="6">
+        <td colspan="7">
           <div class="answers-inner">
             ${renderAnswers(answers)}
           </div>
