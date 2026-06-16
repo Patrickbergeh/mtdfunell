@@ -513,7 +513,6 @@
       <button class="tab-btn" data-tab="leads">Leads</button>
     </div>
     <div class="topnav-actions">
-      <button class="btn-sm" id="refresh-btn">↺ Atualizar</button>
       <button class="btn-sm danger" id="logout-btn">Sair</button>
     </div>
   </nav>
@@ -548,7 +547,6 @@
 
       <div class="section-hd">
         <h2 class="section-title">Etapas do funil</h2>
-        <span id="last-updated" style="font-size:12px;color:var(--muted)"></span>
       </div>
 
       <div class="funnel-wrap">
@@ -577,7 +575,7 @@
       </div>
 
       <div class="leads-toolbar">
-        <input class="search-input" id="search-input" placeholder="Buscar por nome, e-mail ou Instagram…" />
+        <input class="search-input" id="search-input" placeholder="Buscar por nome, e-mail ou Instagram…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
         <span id="leads-count" style="font-size:13px;color:var(--muted);white-space:nowrap"></span>
       </div>
 
@@ -773,8 +771,6 @@ function renderFunnel(counts) {
     if (count > 0) prevCount = count;
   }
 
-  const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('last-updated').textContent = `Atualizado às ${now}`;
 }
 
 /* ══════════════════════════════════════════
@@ -924,12 +920,24 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 /* ══════════════════════════════════════════
    LOGIN
 ══════════════════════════════════════════ */
+function setupRealtime() {
+  sb.channel('mdt-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'funnel_events' }, () => {
+      loadFunnel();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => {
+      loadLeads();
+    })
+    .subscribe();
+}
+
 function showApp() {
   document.getElementById('login-overlay').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   initSupabase();
   loadFunnel();
   loadLeads();
+  setupRealtime();
 }
 
 document.getElementById('login-btn').addEventListener('click', () => {
@@ -946,13 +954,6 @@ document.getElementById('pwd-input').addEventListener('keydown', e => {
 });
 
 document.getElementById('logout-btn').addEventListener('click', logout);
-
-document.getElementById('refresh-btn').addEventListener('click', () => {
-  document.getElementById('funnel-rows').innerHTML = '<div class="state-msg"><div class="spinner"></div>Atualizando…</div>';
-  document.getElementById('leads-tbody').innerHTML = '<tr><td colspan="6"><div class="state-msg"><div class="spinner"></div>Atualizando…</div></td></tr>';
-  loadFunnel();
-  loadLeads();
-});
 
 /* ══════════════════════════════════════════
    INIT
