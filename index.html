@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-rev="2">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diagnóstico da sua mentoria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<!-- Vturb VSL: only DNS/connection warm-up here. The player script is injected
+     dynamically when the user actually reaches the VSL screen (see main script). -->
+<link rel="dns-prefetch" href="https://cdn.converteai.net">
+<link rel="dns-prefetch" href="https://scripts.converteai.net">
+<link rel="dns-prefetch" href="https://images.converteai.net">
+<link rel="dns-prefetch" href="https://license.vturb.com">
+
+<!-- Intl tel input: country dial code + SVG flags -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/css/intlTelInput.css">
+<style>
+  :root {
+    --gold: #ddbb91;
+    --cream: #ebdcc4;
+    --black: #000000;
+    --bg: #f2f1eb;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--black);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* Prevent iOS Safari from auto-zooming on input focus.
+     iOS zooms whenever a focusable form control has font-size < 16px,
+     so we floor every input/textarea/select at 16px on touch screens. */
+  @media (hover: none) and (pointer: coarse) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  .app {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ===== Top bar ===== */
+  .topbar {
+    padding: 22px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    display: inline-block;
+  }
+
+  .progress-wrap {
+    flex: 1;
+    height: 4px;
+    background: rgba(0,0,0,0.06);
+    border-radius: 99px;
+    overflow: hidden;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--black);
+    border-radius: 99px;
+    transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .step-counter {
+    font-size: 13px;
+    color: rgba(0,0,0,0.55);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* ===== Main container ===== */
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 48px 24px 80px;
+    position: relative;
+  }
+
+  .screen {
+    width: 100%;
+    max-width: 680px;
+    margin: auto;
+    display: none;
+    animation: fadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .screen.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== Typography ===== */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: var(--cream);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 99px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(0,0,0,0.7);
+    margin-bottom: 24px;
+  }
+
+  .eyebrow .icon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  h1.headline {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(34px, 5.4vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+    font-weight: 400;
+  }
+
+  h2.question {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(28px, 4.2vw, 42px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+
+  p.lead {
+    font-size: clamp(16px, 1.7vw, 18px);
+    color: rgba(0,0,0,0.7);
+    margin-bottom: 32px;
+    max-width: 580px;
+  }
+
+  /* ===== Benefit list ===== */
+  .benefits {
+    list-style: none;
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .benefits li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: 16px;
+    color: var(--black);
+  }
+
+  .benefits .check {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--black);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    margin-top: 1px;
+  }
+
+  /* ===== Buttons ===== */
+  .cta {
+    appearance: none;
+    border: none;
+    background: var(--black);
+    color: var(--bg);
+    padding: 18px 32px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.25s ease;
+    letter-spacing: -0.005em;
+  }
+
+  .cta:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -10px rgba(0,0,0,0.4);
+  }
+
+  .cta:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .cta .arrow {
+    transition: transform 0.25s ease;
+  }
+
+  .cta:hover:not(:disabled) .arrow {
+    transform: translateX(4px);
+  }
+
+  /* ===== Radio Options ===== */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .option {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .option-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 22px;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .option:hover .option-card {
+    border-color: var(--gold);
+    background: var(--bg);
+  }
+
+  .option input[type="radio"]:checked + .option-card {
+    background: var(--black);
+    border-color: var(--black);
+    color: var(--bg);
+  }
+
+  .option input[type="radio"]:checked + .option-card .radio-circle {
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+
+  .option input[type="radio"]:checked + .option-card .radio-circle::after {
+    transform: scale(1);
+  }
+
+  .option input[type="radio"]:checked + .option-card .option-letter {
+    background: var(--gold);
+    color: var(--black);
+  }
+
+  .radio-circle {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.2);
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.22s ease;
+    position: relative;
+  }
+
+  .radio-circle::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--black);
+    transform: scale(0);
+    transition: transform 0.22s ease;
+  }
+
+  .option-letter {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--cream);
+    color: var(--black);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.22s ease;
+  }
+
+  .option-text {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  /* ===== Navigation row ===== */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .back-btn {
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    color: rgba(0,0,0,0.55);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 12px 8px;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .back-btn:hover {
+    color: var(--black);
+  }
+
+  /* ===== Education / Mirror screens ===== */
+  .info-card {
+    background: var(--cream);
+    padding: 40px;
+    border-radius: 24px;
+    margin-bottom: 32px;
+    border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0.25;
+    filter: blur(40px);
+  }
+
+  .info-card .info-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(26px, 3.5vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .info-card .info-text {
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.55;
+    color: rgba(0,0,0,0.78);
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .info-card .info-text:last-of-type {
+    margin-bottom: 0;
+  }
+
+  /* ===== Social proof stars ===== */
+  .stars-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .stars-row svg {
+    fill: var(--gold);
+  }
+
+  .avatars {
+    display: flex;
+    margin-bottom: 20px;
+  }
+
+  .zoom-proof {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 8px 0 32px;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.35),
+                0 6px 18px -8px rgba(0,0,0,0.15);
+    background: var(--black);
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+
+  .zoom-proof.reveal {
+    opacity: 1;
+    will-change: transform, opacity;
+  }
+
+  .screen.active .zoom-proof.reveal {
+    animation: revealImage 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  }
+
+  @keyframes revealImage {
+    0% {
+      opacity: 0;
+      transform: translateY(28px) scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .zoom-proof img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .zoom-proof-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px 7px 10px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    backdrop-filter: blur(8px);
+    color: var(--black);
+  }
+
+  .zoom-proof-badge .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+    animation: pulse 1.8s infinite;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid var(--bg);
+    margin-left: -10px;
+    background: linear-gradient(135deg, var(--gold), var(--cream));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--black);
+  }
+
+  .avatar:first-child {
+    margin-left: 0;
+  }
+
+  /* ===== Form fields ===== */
+  .form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .field {
+    position: relative;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: rgba(0,0,0,0.6);
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 18px 22px;
+    font-family: inherit;
+    font-size: 16px;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    color: var(--black);
+    transition: all 0.22s ease;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--black);
+    background: var(--bg);
+  }
+
+  .field input::placeholder {
+    color: rgba(0,0,0,0.35);
+  }
+
+  /* ===== Intl tel input overrides ===== */
+  .field .iti {
+    width: 100%;
+    display: block;
+    position: relative;
+    --iti-flag-height: 14px;
+  }
+
+  .field .iti__tel-input {
+    width: 100%;
+    height: 62px;
+    padding: 0 22px 0 130px;
+    font-family: inherit;
+    font-size: 16px;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    color: var(--black);
+    transition: border-color 0.22s ease, background 0.22s ease;
+    box-sizing: border-box;
+    line-height: 1;
+  }
+
+  .field .iti__tel-input::placeholder {
+    color: rgba(0,0,0,0.35);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .field .iti__tel-input:focus {
+    outline: none;
+    border-color: var(--black);
+    background: var(--bg);
+  }
+
+  /* ============================================================
+     DDI picker = self-contained pill inside the input field.
+     - 8px inset from every edge of the field
+     - own background, border, rounded corners
+     - hover / active / focus / open states clearly differentiated
+     ============================================================ */
+  .field .iti--separate-dial-code .iti__country-container {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    bottom: 6px;
+    width: 112px;
+    padding: 0;
+    background: transparent;
+    z-index: 2;
+  }
+
+  .field .iti--separate-dial-code .iti__selected-country {
+    width: 100%;
+    height: 100%;
+    padding: 0 10px 0 14px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.4),
+      0 1px 2px rgba(0,0,0,0.04);
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* HOVER — subtle lift + warmer surface */
+  .field .iti--separate-dial-code .iti__selected-country:hover {
+    background: var(--bg);
+    border-color: rgba(0,0,0,0.18);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.4),
+      0 3px 8px -3px rgba(0,0,0,0.12);
+  }
+
+  /* ACTIVE (mouse down) — gentle press */
+  .field .iti--separate-dial-code .iti__selected-country:active {
+    transform: scale(0.96);
+    background: var(--cream);
+    box-shadow:
+      inset 0 1px 2px rgba(0,0,0,0.06),
+      0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* FOCUS RING — for keyboard users */
+  .field .iti--separate-dial-code .iti__selected-country:focus-visible {
+    outline: none;
+    border-color: var(--black);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.4),
+      0 0 0 3px rgba(221, 187, 145, 0.45);
+  }
+
+  /* OPEN — dropdown is expanded */
+  .field .iti--separate-dial-code .iti__selected-country[aria-expanded="true"] {
+    background: var(--cream);
+    border-color: var(--black);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.2),
+      0 6px 14px -6px rgba(0,0,0,0.18);
+  }
+
+  /* Inner content layout */
+  .field .iti--separate-dial-code .iti__selected-country-primary {
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+  }
+
+  /* Flag — subtle outline so it reads on any background */
+  .field .iti__flag {
+    border-radius: 3px;
+    box-shadow:
+      0 0 0 0.5px rgba(0,0,0,0.18),
+      0 1px 2px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+  }
+
+  /* Dial code */
+  .field .iti--separate-dial-code .iti__selected-dial-code {
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--black);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.005em;
+    margin-left: 0;
+  }
+
+  /* Chevron — SVG, rotates when open */
+  .field .iti__arrow {
+    width: 11px;
+    height: 11px;
+    border: none;
+    margin: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.55)' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.85;
+  }
+
+  .field .iti--separate-dial-code .iti__selected-country:hover .iti__arrow {
+    opacity: 1;
+  }
+
+  .field .iti__selected-country[aria-expanded="true"] .iti__arrow {
+    transform: rotate(180deg);
+    opacity: 1;
+  }
+
+  .iti__dropdown-content {
+    border-radius: 16px !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 24px 60px -18px rgba(0,0,0,0.28),
+                0 4px 14px -6px rgba(0,0,0,0.08) !important;
+    background: #fff !important;
+    overflow: hidden !important;
+    width: min(360px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin-top: 6px !important;
+  }
+
+  .iti__search-input {
+    font-family: inherit !important;
+    font-size: 16px !important; /* 16px to prevent iOS auto-zoom on focus */
+    padding: 14px 18px 14px 44px !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+    background: var(--bg) !important;
+    color: var(--black) !important;
+    position: relative !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: 18px center !important;
+  }
+
+  .iti__search-input::placeholder {
+    color: rgba(0,0,0,0.4) !important;
+  }
+
+  .iti__search-input:focus {
+    outline: none !important;
+    background-color: #fff !important;
+  }
+
+  /* Scrollable country list */
+  .iti__country-list {
+    font-family: inherit !important;
+    font-size: 14px !important;
+    max-height: 320px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 6px 0 !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.18) transparent;
+  }
+
+  .iti__country-list::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .iti__country-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .iti__country-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.16);
+    border-radius: 99px;
+    border: 2px solid #fff;
+  }
+
+  .iti__country-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.28);
+  }
+
+  .iti__divider {
+    border-bottom: 1px solid rgba(0,0,0,0.06) !important;
+    margin: 6px 12px !important;
+    padding: 0 !important;
+  }
+
+  .iti__country {
+    padding: 10px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    border-radius: 8px !important;
+    margin: 1px 6px !important;
+    transition: background 0.15s ease !important;
+    cursor: pointer !important;
+  }
+
+  .iti__country .iti__flag {
+    flex-shrink: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .iti__country-name {
+    flex: 1 !important;
+    color: var(--black) !important;
+    font-weight: 400 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .iti__dial-code {
+    color: rgba(0,0,0,0.5) !important;
+    font-variant-numeric: tabular-nums !important;
+    font-size: 13.5px !important;
+    margin-left: 8px !important;
+  }
+
+  .iti__country.iti__highlight {
+    background: var(--cream) !important;
+  }
+
+  .iti__country[aria-selected="true"] {
+    background: var(--bg) !important;
+  }
+
+  .iti__country[aria-selected="true"] .iti__dial-code {
+    color: var(--black) !important;
+    font-weight: 500 !important;
+  }
+
+  /* ===== Loading / diagnóstico screen ===== */
+  .loading-screen {
+    text-align: center;
+  }
+
+  .loading-card {
+    background: var(--cream);
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 28px;
+    padding: 48px 36px 40px;
+    position: relative;
+    overflow: hidden;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .loading-card::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0.28;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+
+  .loading-orb {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 28px;
+    z-index: 1;
+  }
+
+  .loading-orb-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--gold), #b08550 70%, #6b4f2c);
+    box-shadow: 0 12px 30px -8px rgba(176, 133, 80, 0.55),
+                inset 0 -8px 18px rgba(0,0,0,0.25);
+    animation: orbPulse 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .loading-orb-ring {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--black);
+    animation: orbSpin 1.4s linear infinite;
+  }
+
+  @keyframes orbPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  @keyframes orbSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(26px, 3.5vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    margin-bottom: 12px;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+  }
+
+  .loading-sub {
+    font-size: 15px;
+    color: rgba(0,0,0,0.65);
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .loading-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px;
+    text-align: left;
+    position: relative;
+    z-index: 1;
+  }
+
+  .loading-steps li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    font-size: 14.5px;
+    color: rgba(0,0,0,0.4);
+    transition: color 0.3s ease;
+  }
+
+  .loading-steps li .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.18);
+    background: transparent;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .loading-steps li.active {
+    color: var(--black);
+  }
+
+  .loading-steps li.active .dot {
+    border-color: var(--black);
+    background: var(--black);
+  }
+
+  .loading-steps li.active .dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 3px;
+    border-left: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+    transform: translate(-50%, -70%) rotate(-45deg);
+  }
+
+  .loading-steps li.current {
+    color: var(--black);
+    font-weight: 500;
+  }
+
+  .loading-steps li.current .dot {
+    border-color: var(--black);
+    background: var(--cream);
+    animation: dotPulse 0.9s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0.25); }
+    50% { box-shadow: 0 0 0 6px rgba(0,0,0,0); }
+  }
+
+  .loading-progress {
+    height: 4px;
+    background: rgba(0,0,0,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .loading-progress span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: var(--black);
+    border-radius: 99px;
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #vslUserName:not(:empty)::after {
+    content: ', ';
+  }
+
+  /* ===== Final VSL screen ===== */
+  .vsl-screen {
+    text-align: center;
+  }
+
+  .vsl-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    background: var(--cream);
+    border-radius: 99px;
+    margin-bottom: 28px;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2d7a2d;
+    box-shadow: 0 0 0 0 rgba(45, 122, 45, 0.7);
+    animation: pulse 1.8s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(45, 122, 45, 0.5); }
+    70% { box-shadow: 0 0 0 12px rgba(45, 122, 45, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(45, 122, 45, 0); }
+  }
+
+  .vsl-player {
+    width: 100%;
+    max-width: 520px;
+    margin: 32px auto 0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.4),
+                0 6px 18px -8px rgba(0,0,0,0.15);
+    background: var(--black);
+  }
+
+  .vsl-player vturb-smartplayer {
+    display: block;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .vsl-cta-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 56px;
+    padding-bottom: 8px;
+  }
+
+  .vsl-cta-wrap .cta {
+    text-decoration: none;
+  }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 640px) {
+    .topbar {
+      padding: 16px 18px;
+      gap: 14px;
+    }
+
+    .brand {
+      font-size: 18px;
+    }
+
+    main {
+      padding: 28px 18px 60px;
+    }
+
+    .info-card {
+      padding: 28px 22px;
+      border-radius: 18px;
+    }
+
+    .option-card {
+      padding: 16px 18px;
+      gap: 14px;
+    }
+
+    .option-text {
+      font-size: 15px;
+    }
+
+    .cta {
+      padding: 16px 26px;
+      font-size: 15px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .nav-row {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+
+    .back-btn {
+      text-align: center;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <main id="main">
+    <!-- ====== STEP 1: PORTA DE ENTRADA ====== -->
+    <section class="screen active" data-step="0">
+      <h1 class="headline">Você sabe quanto o seu conhecimento pode valer hoje?</h1>
+      <p class="lead">Faça esse diagnóstico rápido e descubra como transformar o que você já sabe em uma mentoria que vende.</p>
+      <ul class="benefits">
+        <li>
+          <span class="check">✓</span>
+          <span>Se o que você já sabe pode ser transformado em uma mentoria de <strong>R$2.000 a R$10.000</strong></span>
+        </li>
+        <li>
+          <span class="check">✓</span>
+          <span>Qual o seu plano para faturar os <strong>primeiros R$30.000</strong> com isso</span>
+        </li>
+      </ul>
+      <button class="cta" data-next>
+        Fazer diagnóstico da minha mentoria
+        <span class="arrow">→</span>
+      </button>
+    </section>
+
+    <!-- ====== STEP 2: SELO DE CONFIANÇA SOCIAL ====== -->
+    <section class="screen" data-step="1">
+      <h1 class="headline">Mais de 500 profissionais já descobriram aqui o valor real do conhecimento que tinham.</h1>
+      <p class="lead">E como transformar isso em uma mentoria que vende. Agora é a sua vez.</p>
+      <div class="zoom-proof reveal">
+        <span class="zoom-proof-badge"><span class="live-dot"></span> Mentoria ao vivo</span>
+        <img
+          src="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/WhatsApp%20Image%202026-06-12%20at%2014.54.09.jpeg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvV2hhdHNBcHAgSW1hZ2UgMjAyNi0wNi0xMiBhdCAxNC41NC4wOS5qcGVnIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4MTU3MzI1MiwiZXhwIjo0OTM1MTczMjUyfQ.UzV0-qXHG4XA5SsWjFVJvR0eEpf5CIuTIwLqhdm_v6M"
+          alt="Mentoria ao vivo com dezenas de alunas no Zoom"
+          loading="eager"
+          referrerpolicy="no-referrer"
+        />
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next>
+          Começar minha avaliação
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== Q1 ====== -->
+    <section class="screen" data-step="2">
+      <h2 class="question">O conhecimento que você tem hoje vem de:</h2>
+      <div class="options" data-question="q1">
+        <label class="option">
+          <input type="radio" name="q1" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Anos de profissão ou formação na área</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q1" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Experiência própria, eu vivi e superei isso</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q1" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Resultados que já gerei para outras pessoas</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q1" value="D" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">D</span>
+            <span class="option-text">Uma combinação de tudo isso</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== Q2 ====== -->
+    <section class="screen" data-step="3">
+      <h2 class="question">Se você transformasse o que sabe em uma mentoria, o que isso significaria pra você?</h2>
+      <div class="options" data-question="q2">
+        <label class="option">
+          <input type="radio" name="q2" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Uma nova fonte de renda com o que já domino</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q2" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Finalmente cobrar o que meu conhecimento vale</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q2" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Sair da troca de tempo por dinheiro</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q2" value="D" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">D</span>
+            <span class="option-text">Ter liberdade e previsibilidade no meu negócio</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== MICRO-EDUCATION ====== -->
+    <section class="screen" data-step="4">
+      <div class="info-card">
+        <h2 class="info-title">O valor de uma mentoria não é definido pelo quanto você sabe.</h2>
+        <p class="info-text">É definido pela clareza da transformação que você entrega, e pela forma como você organiza o que sabe em um caminho que a pessoa consegue seguir.</p>
+        <p class="info-text">Vamos avaliar o quão perto o seu conhecimento está disso.</p>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next>
+          Continuar minha avaliação
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== Q3 ====== -->
+    <section class="screen" data-step="5">
+      <h2 class="question">Se você fosse ensinar tudo que sabe para alguém do zero, você teria:</h2>
+      <div class="options" data-question="q3">
+        <label class="option">
+          <input type="radio" name="q3" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Um passo a passo claro, do início ao fim</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q3" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Os principais tópicos, mas sem uma ordem definida</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q3" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Muito conhecimento, mas difícil de organizar</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q3" value="D" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">D</span>
+            <span class="option-text">Ensinaria conforme a pessoa fosse precisando</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== Q4 (era Q5) ====== -->
+    <section class="screen" data-step="6">
+      <h2 class="question">Sobre resultados que você já gerou com o seu conhecimento:</h2>
+      <div class="options" data-question="q5">
+        <label class="option">
+          <input type="radio" name="q5" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Já transformei a vida ou o negócio de várias pessoas</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q5" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Já ajudei algumas pessoas com bons resultados</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q5" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Já apliquei em mim, mas ainda não em outros</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q5" value="D" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">D</span>
+            <span class="option-text">Tenho o conhecimento, mas ainda não apliquei</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== Q6 ====== -->
+    <section class="screen" data-step="8">
+      <h2 class="question">Pensando em cobrar R$2.000, R$5.000 ou mais pela sua mentoria, você sente que:</h2>
+      <div class="options" data-question="q6">
+        <label class="option">
+          <input type="radio" name="q6" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Tenho total segurança de que vale isso</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q6" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Vale, mas eu travaria na hora de cobrar</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q6" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Não saberia como justificar esse valor</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q6" value="D" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">D</span>
+            <span class="option-text">Sinto que precisaria saber mais antes</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== Q7 ====== -->
+    <section class="screen" data-step="9">
+      <h2 class="question">Sobre vender o seu conhecimento, hoje você está:</h2>
+      <div class="options" data-question="q7">
+        <label class="option">
+          <input type="radio" name="q7" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Ainda não vendi, mas quero começar</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q7" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Já fiz algumas vendas avulsas no individual</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q7" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Já atendo com frequência, mas sem estrutura</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q7" value="D" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">D</span>
+            <span class="option-text">Já tenho clientes, mas tudo depende de mim</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== ESPELHAMENTO ====== -->
+    <section class="screen" data-step="10">
+      <div class="info-card">
+        <h2 class="info-title">A maioria das pessoas que faz essa avaliação descobre a mesma coisa:</h2>
+        <p class="info-text">O conhecimento delas vale muito mais do que elas imaginam.</p>
+        <p class="info-text">O que falta nunca é saber mais. É transformar o que já sabem em uma mentoria estruturada que as pessoas queiram pagar caro.</p>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next>
+          Ver minha avaliação
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== COMPROMETIMENTO ====== -->
+    <section class="screen" data-step="11">
+      <h2 class="question">Se existisse uma forma de transformar o que você já sabe em uma mentoria de R$2.000 a R$10.000, e faturar seus primeiros R$30.000 em poucas semanas, você gostaria de descobrir como?</h2>
+      <div class="options" data-question="q8">
+        <label class="option">
+          <input type="radio" name="q8" value="A" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">A</span>
+            <span class="option-text">Sim, é exatamente isso que eu preciso agora</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q8" value="B" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">B</span>
+            <span class="option-text">Sim, tenho muito interesse em entender como</span>
+          </div>
+        </label>
+        <label class="option">
+          <input type="radio" name="q8" value="C" />
+          <div class="option-card">
+            <span class="radio-circle"></span>
+            <span class="option-letter">C</span>
+            <span class="option-text">Talvez, quero entender melhor primeiro</span>
+          </div>
+        </label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" data-next disabled>
+          Continuar
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== CAPTURA ====== -->
+    <section class="screen" data-step="12">
+      <h2 class="question">Sua avaliação está pronta.</h2>
+      <p class="lead">Informe seus dados para ver quanto vale o seu conhecimento hoje, e o plano para faturar seus primeiros R$30.000.</p>
+      <form class="form-fields" id="captureForm" novalidate>
+        <div class="field">
+          <label for="userName">Como prefere ser chamada(o)?</label>
+          <input type="text" id="userName" name="name" placeholder="Seu primeiro nome" autocomplete="given-name" required />
+        </div>
+        <div class="field">
+          <label for="email">Melhor e-mail</label>
+          <input type="email" id="email" name="email" placeholder="seu@email.com" required />
+        </div>
+        <div class="field">
+          <label for="whatsapp">WhatsApp</label>
+          <input type="tel" id="whatsapp" name="whatsapp" required />
+        </div>
+        <div class="field">
+          <label for="instagram">Instagram</label>
+          <input type="text" id="instagram" name="instagram" placeholder="@seuusuario" required />
+        </div>
+      </form>
+      <div class="nav-row">
+        <button class="back-btn" data-back>← Voltar</button>
+        <button class="cta" id="submitCapture">
+          Ver minha avaliação
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====== LOADING / DIAGNÓSTICO ====== -->
+    <section class="screen loading-screen" data-step="13">
+      <div class="loading-card">
+        <div class="loading-orb">
+          <div class="loading-orb-inner"></div>
+          <div class="loading-orb-ring"></div>
+        </div>
+        <h2 class="loading-title">Estamos avaliando suas respostas</h2>
+        <p class="loading-sub">Cruzando seu perfil para montar o seu diagnóstico personalizado…</p>
+        <ul class="loading-steps">
+          <li data-step-loader="0"><span class="dot"></span> Analisando suas respostas</li>
+          <li data-step-loader="1"><span class="dot"></span> Identificando o valor do seu conhecimento</li>
+          <li data-step-loader="2"><span class="dot"></span> Calculando o plano para os primeiros R$30.000</li>
+          <li data-step-loader="3"><span class="dot"></span> Preparando seu diagnóstico</li>
+        </ul>
+        <div class="loading-progress"><span></span></div>
+      </div>
+    </section>
+
+    <!-- ====== VSL ====== -->
+    <section class="screen vsl-screen" data-step="14">
+      <h1 class="headline"><span id="vslUserName"></span>Sua avaliação está pronta.</h1>
+      <p class="lead" style="margin: 0 auto 16px;">Eu analisei suas respostas e preparei um vídeo curto mostrando exatamente quanto o seu conhecimento pode valer, e o caminho para transformar isso em uma mentoria de <strong>R$2.000 a R$10.000</strong> nas próximas 4 semanas.</p>
+      <div class="vsl-player">
+        <vturb-smartplayer id="vid-6a2d4c93f1639bbd69b19b8c" style="display: block; margin: 0 auto; width: 100%;"></vturb-smartplayer>
+      </div>
+      <div class="vsl-cta-wrap">
+        <a href="https://payfast.greenn.com.br/45497/offer/Gf3z44" target="_blank" rel="noopener" class="cta">
+          Quero saber como começar
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/js/intlTelInput.min.js"></script>
+<script>
+  const screens = Array.from(document.querySelectorAll('.screen'));
+  const totalSteps = screens.length;
+  let currentStep = 0;
+  const answers = {};
+
+  let vslLoaded = false;
+  function loadVturbPlayer() {
+    if (vslLoaded) return;
+    vslLoaded = true;
+    const s = document.createElement('script');
+    s.src = 'https://scripts.converteai.net/06de75fb-4e77-4d24-a891-be4f8f6aef70/players/6a2d4c93f1639bbd69b19b8c/v4/player.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
+  function go(step) {
+    if (step < 0 || step >= totalSteps) return;
+    screens[currentStep].classList.remove('active');
+    currentStep = step;
+    screens[currentStep].classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (screens[currentStep].classList.contains('vsl-screen')) {
+      loadVturbPlayer();
+    }
+  }
+
+  document.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const screen = btn.closest('.screen');
+      const qBlock = screen.querySelector('.options');
+      if (qBlock) {
+        const selected = qBlock.querySelector('input:checked');
+        if (!selected) return;
+        answers[qBlock.dataset.question] = selected.value;
+      }
+      go(currentStep + 1);
+    });
+  });
+
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => go(currentStep - 1));
+  });
+
+  document.querySelectorAll('.options').forEach(block => {
+    const inputs = block.querySelectorAll('input[type="radio"]');
+    const nextBtn = block.parentElement.querySelector('[data-next]');
+    inputs.forEach(input => {
+      input.addEventListener('change', () => {
+        if (nextBtn) nextBtn.disabled = false;
+      });
+    });
+  });
+
+  // Intl tel input — country picker with SVG flags
+  const whatsappInput = document.getElementById('whatsapp');
+  let iti = null;
+  let itiUtilsReady = false;
+  if (whatsappInput && window.intlTelInput) {
+    iti = window.intlTelInput(whatsappInput, {
+      initialCountry: 'br',
+      preferredCountries: ['br', 'pt', 'us', 'es', 'ar'],
+      separateDialCode: true,
+      countrySearch: true,
+      formatAsYouType: true,
+      strictMode: false,
+      loadUtils: () => import('https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/js/utils.js'),
+    });
+
+    if (iti && iti.promise) {
+      iti.promise.then(() => { itiUtilsReady = true; });
+    }
+  }
+
+  function isPhoneValid(rawValue) {
+    const digits = (rawValue || '').replace(/\D/g, '');
+    // Fallback: at least 7 digits (covers most country mobile lengths).
+    if (!iti) return digits.length >= 7;
+    if (itiUtilsReady && typeof iti.isValidNumber === 'function') {
+      try {
+        if (iti.isValidNumber()) return true;
+      } catch (_) { /* utils may have failed to load; fall through */ }
+    }
+    return digits.length >= 7;
+  }
+
+  // ===== LocalStorage helpers =====
+  const STORAGE_KEY = 'mdt_quiz_user';
+
+  function saveUser(data) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
+  }
+
+  function loadUser() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; }
+    catch (_) { return null; }
+  }
+
+  // Always strip surnames — keep only the first word, capitalized properly.
+  // "Maria José Silva" → "Maria"  |  "PATRICK BERGER" → "Patrick"
+  // "ana-luiza dos santos" → "Ana-Luiza" (compound first names with hyphen are kept)
+  function firstNameOf(input) {
+    if (!input) return '';
+    const first = String(input).trim().split(/\s+/)[0] || '';
+    if (!first) return '';
+    return first
+      .toLowerCase()
+      .replace(/(^|[\-'])\p{L}/gu, (m) => m.toUpperCase());
+  }
+
+  function setVslName(rawName) {
+    const slot = document.getElementById('vslUserName');
+    if (slot) slot.textContent = firstNameOf(rawName);
+  }
+
+  // Pre-populate VSL name if user has been here before (uses first name only)
+  const storedUser = loadUser();
+  if (storedUser && storedUser.name) setVslName(storedUser.name);
+
+  // ===== Diagnóstico animation =====
+  function runDiagnosticAnimation() {
+    const screen = document.querySelector('.loading-screen');
+    if (!screen) return Promise.resolve();
+    const stepEls = screen.querySelectorAll('[data-step-loader]');
+    const bar = screen.querySelector('.loading-progress span');
+
+    return new Promise(resolve => {
+      const phases = [
+        { delay: 0,    progress: 18 },
+        { delay: 900,  progress: 42 },
+        { delay: 1800, progress: 68 },
+        { delay: 2700, progress: 92 },
+        { delay: 3500, progress: 100, done: true },
+      ];
+
+      stepEls.forEach(el => { el.classList.remove('active', 'current'); });
+      if (bar) bar.style.width = '0%';
+
+      phases.forEach((phase, i) => {
+        setTimeout(() => {
+          // mark previous as completed
+          stepEls.forEach((el, idx) => {
+            if (idx < i) {
+              el.classList.add('active');
+              el.classList.remove('current');
+            }
+          });
+          // mark current
+          if (i < stepEls.length) {
+            stepEls[i] && stepEls[i].classList.add('current');
+          } else {
+            stepEls.forEach(el => {
+              el.classList.add('active');
+              el.classList.remove('current');
+            });
+          }
+          if (bar) bar.style.width = phase.progress + '%';
+          if (phase.done) {
+            setTimeout(resolve, 600);
+          }
+        }, phase.delay);
+      });
+    });
+  }
+
+  // ===== Capture form =====
+  const captureForm = document.getElementById('captureForm');
+  const submitCapture = document.getElementById('submitCapture');
+  const userNameInput = document.getElementById('userName');
+
+  if (submitCapture) {
+    submitCapture.addEventListener('click', async () => {
+      const name = userNameInput.value.trim();
+      const email = document.getElementById('email').value.trim();
+      const whatsappRaw = whatsappInput.value.trim();
+      const whatsapp = iti ? iti.getNumber() : whatsappRaw;
+      const instagram = document.getElementById('instagram').value.trim();
+      const whatsappValid = isPhoneValid(whatsappRaw);
+
+      if (!name || !email || !whatsappRaw || !instagram || !whatsappValid) {
+        captureForm.querySelectorAll('input').forEach(input => {
+          const empty = !input.value.trim();
+          const phoneBad = input === whatsappInput && !whatsappValid;
+          if (empty || phoneBad) {
+            input.style.borderColor = '#c44';
+            setTimeout(() => input.style.borderColor = '', 1500);
+          }
+        });
+        return;
+      }
+
+      const firstName = firstNameOf(name);
+      const contact = {
+        name: firstName,
+        fullName: name,
+        email,
+        whatsapp,
+        whatsappCountry: iti ? iti.getSelectedCountryData().iso2 : null,
+        instagram,
+      };
+      answers.contact = contact;
+      saveUser({ name: firstName, fullName: name, email, whatsapp, instagram, answers, savedAt: Date.now() });
+      setVslName(firstName);
+
+      // disable to avoid double-click
+      submitCapture.disabled = true;
+      submitCapture.style.opacity = '0.6';
+
+      // go to loading screen, run animation, then to VSL
+      go(currentStep + 1);
+      await runDiagnosticAnimation();
+      go(currentStep + 1);
+
+      submitCapture.disabled = false;
+      submitCapture.style.opacity = '';
+    });
+  }
+
+</script>
+</body>
+</html>
