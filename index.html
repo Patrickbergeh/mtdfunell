@@ -2297,7 +2297,12 @@
       const name = userNameInput.value.trim();
       const email = document.getElementById('email').value.trim();
       const whatsappRaw = whatsappInput.value.trim();
-      const whatsapp = iti ? iti.getNumber() : whatsappRaw;
+      let whatsapp = iti ? (iti.getNumber() || '') : whatsappRaw;
+      if (!whatsapp && whatsappRaw && iti) {
+        const countryData = iti.getSelectedCountryData();
+        whatsapp = '+' + (countryData.dialCode || '') + whatsappRaw.replace(/\D/g, '');
+      }
+      if (!whatsapp) whatsapp = whatsappRaw;
       const instagram = document.getElementById('instagram').value.trim();
       const whatsappValid = isPhoneValid(whatsappRaw);
 
