@@ -624,6 +624,7 @@
     width: 100%;
     display: block;
     position: relative;
+    overflow: visible;
   }
 
   /* Phone input — padding-left set dynamically by intl-tel-input JS */
@@ -769,12 +770,14 @@
     opacity: 1 !important;
   }
 
-  /* ── Dropdown panel — anchored below the field by intl-tel-input JS ── */
-  .iti--container {
-    z-index: 9990;
-  }
-
+  /* ── Dropdown panel — inside .iti, always opens below ── */
+  .field .iti .iti__dropdown-content,
   .iti__dropdown-content {
+    position: absolute !important;
+    top: 100% !important;
+    bottom: auto !important;
+    left: 0 !important;
+    z-index: 100 !important;
     border-radius: 16px !important;
     border: 1px solid rgba(0,0,0,0.09) !important;
     box-shadow:
@@ -1424,8 +1427,12 @@
       font-size: 14px !important;
     }
 
-    /* Dropdown stays anchored near field on mobile — no bottom sheet */
+    /* Dropdown — sempre abaixo no mobile */
+    .field .iti .iti__dropdown-content,
     .iti__dropdown-content {
+      position: absolute !important;
+      top: 100% !important;
+      bottom: auto !important;
       width: calc(100vw - 24px) !important;
       max-width: calc(100vw - 24px) !important;
       border-radius: 14px !important;
@@ -2096,8 +2103,6 @@
       countrySearch: true,
       formatAsYouType: true,
       strictMode: false,
-      // Anchors the dropdown to <body> so it isn't clipped by parent overflow on mobile
-      dropdownContainer: document.body,
       loadUtils: () => import('https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/js/utils.js'),
     });
 
