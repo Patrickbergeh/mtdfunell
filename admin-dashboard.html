@@ -6,7 +6,7 @@
 <title>Admin — MDT Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   /* ─── Reset & Tokens ─── */
@@ -53,7 +53,7 @@
   }
 
   .login-logo {
-    font-family: 'Instrument Serif', serif;
+    font-family: inherit;
     font-size: 28px;
     margin-bottom: 6px;
   }
@@ -120,7 +120,7 @@
   }
 
   .topnav-brand {
-    font-family: 'Instrument Serif', serif;
+    font-family: inherit;
     font-size: 20px;
     letter-spacing: -0.01em;
     color: var(--black);
@@ -171,8 +171,7 @@
 
   /* ─── Main content ─── */
   .main {
-    max-width: 1200px;
-    margin: 0 auto;
+    width: 100%;
     padding: 32px 24px;
   }
 
@@ -205,8 +204,9 @@
   }
 
   .kpi-value {
-    font-family: 'Instrument Serif', serif;
-    font-size: 36px;
+    font-family: inherit;
+    font-size: 30px;
+    font-weight: 700;
     line-height: 1;
     color: var(--black);
     margin-bottom: 4px;
@@ -224,9 +224,9 @@
   }
 
   .section-title {
-    font-family: 'Instrument Serif', serif;
-    font-size: 20px;
-    font-weight: 400;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
   }
 
   /* ─── Funnel chart ─── */
