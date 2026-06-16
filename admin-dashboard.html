@@ -240,16 +240,14 @@
 
   .funnel-row {
     display: grid;
-    grid-template-columns: 220px 1fr 80px 80px 80px;
+    grid-template-columns: 240px 1fr 90px 90px 90px;
     align-items: center;
-    gap: 16px;
-    padding: 14px 20px;
+    gap: 20px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border);
-    transition: background 0.12s;
   }
 
   .funnel-row:last-child { border-bottom: none; }
-  .funnel-row:hover { background: var(--bg); }
 
   .funnel-row.header {
     font-size: 11px;
@@ -257,29 +255,36 @@
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding: 10px 20px;
+    padding: 10px 24px;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
   }
 
   .funnel-step-name {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .funnel-step-label {
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--black);
   }
 
   .funnel-step-type {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     font-size: 10px;
     font-weight: 600;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 99px;
-    margin-left: 6px;
-    vertical-align: middle;
+    width: fit-content;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
   }
 
   .type-q { background: #dbeafe; color: #1d4ed8; }
@@ -289,7 +294,7 @@
   .type-start { background: #f1f5f9; color: #475569; }
 
   .funnel-bar-wrap {
-    height: 8px;
+    height: 10px;
     background: var(--bg);
     border-radius: 99px;
     overflow: hidden;
@@ -303,19 +308,21 @@
   }
 
   .funnel-count {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     text-align: right;
   }
 
   .funnel-pct {
     font-size: 13px;
+    font-weight: 500;
     color: var(--muted);
     text-align: right;
   }
 
   .funnel-drop {
     font-size: 12px;
+    font-weight: 500;
     text-align: right;
   }
 
@@ -462,7 +469,7 @@
   /* ─── Responsive ─── */
   @media (max-width: 900px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    .funnel-row { grid-template-columns: 160px 1fr 60px 60px; }
+    .funnel-row { grid-template-columns: 180px 1fr 70px 70px; }
     .funnel-drop { display: none; }
   }
 
@@ -752,7 +759,7 @@ function renderFunnel(counts) {
     container.insertAdjacentHTML('beforeend', `
       <div class="funnel-row">
         <div class="funnel-step-name">
-          ${esc(s.label)}
+          <span class="funnel-step-label">${esc(s.label)}</span>
           <span class="funnel-step-type type-${s.type}">${typeLabel}</span>
         </div>
         <div class="funnel-bar-wrap">
