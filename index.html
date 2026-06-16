@@ -2074,6 +2074,8 @@
     if (screens[currentStep].classList.contains('vsl-screen')) {
       loadVturbPlayer();
     }
+    const dataStep = parseInt(screens[currentStep].dataset.step ?? step, 10);
+    trackStep(dataStep);
   }
 
   document.querySelectorAll('[data-next]').forEach(btn => {
@@ -2163,6 +2165,37 @@
     }
     return digits.length >= 7;
   }
+
+  // ===== Supabase tracking =====
+  const SB_URL = 'https://eojzqiasvmeeokjgmgue.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvanpxaWFzdm1lZW9ramdtZ3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODE3NDIsImV4cCI6MjA5NDY1Nzc0Mn0.zuPbysNJJ4D3cN-Jl7IXF_vWG75s1v9rKTg2vCfHeLo';
+  const SB_HEADERS = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+  // Unique session per visit — persisted so refresh keeps same session
+  let sessionId = sessionStorage.getItem('mdt_session');
+  if (!sessionId) {
+    sessionId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+    sessionStorage.setItem('mdt_session', sessionId);
+  }
+
+  function trackStep(step) {
+    fetch(SB_URL + '/rest/v1/funnel_events', {
+      method: 'POST',
+      headers: SB_HEADERS,
+      body: JSON.stringify({ session_id: sessionId, step }),
+    }).catch(() => {});
+  }
+
+  function saveLead(data) {
+    return fetch(SB_URL + '/rest/v1/leads', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ ...data, session_id: sessionId }),
+    }).catch(() => {});
+  }
+
+  // Track initial page view (step 0)
+  trackStep(0);
 
   // ===== LocalStorage helpers =====
   const STORAGE_KEY = 'mdt_quiz_user';
@@ -2280,6 +2313,7 @@
       };
       answers.contact = contact;
       saveUser({ name: firstName, fullName: name, email, whatsapp, instagram, answers, savedAt: Date.now() });
+      saveLead({ name: firstName, full_name: name, email, whatsapp, whatsapp_country: iti ? iti.getSelectedCountryData().iso2 : null, instagram, answers });
       setVslName(firstName);
 
       // disable to avoid double-click

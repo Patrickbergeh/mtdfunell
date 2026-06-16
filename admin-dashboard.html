@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — MDT Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* ─── Reset & Tokens ─── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold:  #ddbb91;
+    --cream: #ebdcc4;
+    --bg:    #f2f1eb;
+    --black: #0a0a0a;
+    --white: #ffffff;
+    --muted: rgba(0,0,0,0.45);
+    --border: rgba(0,0,0,0.08);
+    --radius: 14px;
+    --sidebar: 220px;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Instrument Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--black);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ─── Login overlay ─── */
+  #login-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+
+  .login-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 24px 60px -20px rgba(0,0,0,0.16);
+    text-align: center;
+  }
+
+  .login-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+
+  .login-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+
+  .login-card input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--black);
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .login-card input[type="password"]:focus {
+    border-color: var(--black);
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.18s;
+  }
+
+  .login-btn:hover { opacity: 0.85; }
+
+  .login-error {
+    color: #c44;
+    font-size: 13px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* ─── App shell ─── */
+  #app { display: none; min-height: 100vh; }
+
+  /* ─── Top Nav ─── */
+  .topnav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    gap: 32px;
+  }
+
+  .topnav-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    color: var(--black);
+    margin-right: 16px;
+    white-space: nowrap;
+  }
+
+  .topnav-tabs {
+    display: flex; align-items: center; gap: 4px;
+    flex: 1;
+  }
+
+  .tab-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .tab-btn:hover { background: var(--bg); color: var(--black); }
+  .tab-btn.active { background: var(--black); color: var(--white); }
+
+  .topnav-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  .btn-sm {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--black);
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .btn-sm:hover { background: var(--bg); border-color: rgba(0,0,0,0.15); }
+
+  .btn-sm.danger { border-color: #fca5a5; color: #c44; }
+  .btn-sm.danger:hover { background: #fff5f5; }
+
+  /* ─── Main content ─── */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* ─── Tab panels ─── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ─── KPI cards ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .kpi-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+
+  .kpi-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .kpi-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    line-height: 1;
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ─── Section header ─── */
+  .section-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    font-weight: 400;
+  }
+
+  /* ─── Funnel chart ─── */
+  .funnel-wrap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .funnel-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 80px 80px 80px;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.12s;
+  }
+
+  .funnel-row:last-child { border-bottom: none; }
+  .funnel-row:hover { background: var(--bg); }
+
+  .funnel-row.header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 10px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .funnel-step-name {
+    font-size: 13.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .funnel-step-type {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 99px;
+    margin-left: 6px;
+    vertical-align: middle;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .type-q { background: #dbeafe; color: #1d4ed8; }
+  .type-info { background: #dcfce7; color: #15803d; }
+  .type-capture { background: #fef3c7; color: #b45309; }
+  .type-vsl { background: #f3e8ff; color: #7e22ce; }
+  .type-start { background: #f1f5f9; color: #475569; }
+
+  .funnel-bar-wrap {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .funnel-bar {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--black);
+    transition: width 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+
+  .funnel-count {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .funnel-pct {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .funnel-drop {
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .drop-neg { color: #dc2626; }
+  .drop-ok  { color: #16a34a; }
+  .drop-na  { color: var(--muted); }
+
+  /* ─── Leads table ─── */
+  .leads-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .search-input {
+    flex: 1; max-width: 320px;
+    padding: 9px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13.5px;
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--black); }
+
+  .leads-wrap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    padding: 11px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg); }
+  tbody tr.expanded { background: #fafaf8; }
+
+  tbody td {
+    padding: 12px 16px;
+    font-size: 13.5px;
+    vertical-align: middle;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Expandable answers row */
+  .answers-row { display: none; }
+  .answers-row.open { display: table-row; }
+  .answers-row td {
+    padding: 0;
+    background: #f8f8f5;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .answers-inner {
+    padding: 16px 20px;
+  }
+
+  .answers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+  }
+
+  .answer-chip {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+
+  .answer-chip-q {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .answer-chip-a {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--black);
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--bg);
+    color: var(--black);
+  }
+
+  /* Empty + loading states */
+  .state-msg {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--black);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .funnel-row { grid-template-columns: 160px 1fr 60px 60px; }
+    .funnel-drop { display: none; }
+  }
+
+  @media (max-width: 600px) {
+    .main { padding: 20px 14px; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .kpi-value { font-size: 28px; }
+    .topnav { padding: 0 14px; gap: 16px; }
+    .topnav-brand { font-size: 17px; margin-right: 0; }
+    .funnel-row { grid-template-columns: 130px 1fr 55px 55px; gap: 10px; padding: 12px 14px; }
+    .funnel-row.header { display: none; }
+    thead th:nth-child(n+4) { display: none; }
+    tbody td:nth-child(n+4) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════ -->
+<div id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">MDT Admin</div>
+    <p class="login-sub">Acesso restrito ao painel de gestão</p>
+    <input type="password" id="pwd-input" placeholder="Senha" autocomplete="current-password" />
+    <button class="login-btn" id="login-btn">Entrar</button>
+    <p class="login-error" id="login-error">Senha incorreta</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP
+══════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Top nav -->
+  <nav class="topnav">
+    <span class="topnav-brand">MDT Admin</span>
+    <div class="topnav-tabs">
+      <button class="tab-btn active" data-tab="funil">Funil</button>
+      <button class="tab-btn" data-tab="leads">Leads</button>
+    </div>
+    <div class="topnav-actions">
+      <button class="btn-sm" id="refresh-btn">↺ Atualizar</button>
+      <button class="btn-sm danger" id="logout-btn">Sair</button>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- ── FUNIL ── -->
+    <div class="tab-panel active" id="panel-funil">
+
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Visitantes</div>
+          <div class="kpi-value" id="kpi-visitors">—</div>
+          <div class="kpi-sub">Entraram no funil</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Leads capturados</div>
+          <div class="kpi-value" id="kpi-leads">—</div>
+          <div class="kpi-sub">Preencheram o formulário</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Taxa de conversão</div>
+          <div class="kpi-value" id="kpi-cvr">—</div>
+          <div class="kpi-sub">Visitantes → Lead</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Chegaram ao VSL</div>
+          <div class="kpi-value" id="kpi-vsl">—</div>
+          <div class="kpi-sub">Assistiram o vídeo</div>
+        </div>
+      </div>
+
+      <div class="section-hd">
+        <h2 class="section-title">Etapas do funil</h2>
+        <span id="last-updated" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+
+      <div class="funnel-wrap">
+        <div class="funnel-row header">
+          <div>Etapa</div>
+          <div>Volume</div>
+          <div>Pessoas</div>
+          <div>% do total</div>
+          <div>Drop-off</div>
+        </div>
+        <div id="funnel-rows">
+          <div class="state-msg"><div class="spinner"></div>Carregando dados…</div>
+        </div>
+      </div>
+
+    </div><!-- /panel-funil -->
+
+    <!-- ── LEADS ── -->
+    <div class="tab-panel" id="panel-leads">
+
+      <div class="section-hd">
+        <h2 class="section-title">Leads</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm" id="export-csv-btn">↓ Exportar CSV</button>
+        </div>
+      </div>
+
+      <div class="leads-toolbar">
+        <input class="search-input" id="search-input" placeholder="Buscar por nome, e-mail ou Instagram…" />
+        <span id="leads-count" style="font-size:13px;color:var(--muted);white-space:nowrap"></span>
+      </div>
+
+      <div class="leads-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>WhatsApp</th>
+              <th>Instagram</th>
+              <th>Respostas</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="leads-tbody">
+            <tr><td colspan="6"><div class="state-msg"><div class="spinner"></div>Carregando…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /panel-leads -->
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════
+   CONFIG — troque pelas suas chaves Supabase
+══════════════════════════════════════════ */
+const SUPABASE_URL  = 'https://eojzqiasvmeeokjgmgue.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvanpxaWFzdm1lZW9ramdtZ3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODE3NDIsImV4cCI6MjA5NDY1Nzc0Mn0.zuPbysNJJ4D3cN-Jl7IXF_vWG75s1v9rKTg2vCfHeLo';
+const ADMIN_PWD_HASH = 'mdt2025admin'; // Troque pela senha desejada
+
+/* ══════════════════════════════════════════
+   FUNNEL STEP MAP
+══════════════════════════════════════════ */
+const STEPS = [
+  { step: 0,  label: 'Entrada',                         type: 'start'   },
+  { step: 1,  label: 'Prova social',                    type: 'info'    },
+  { step: 2,  label: 'Q1 — Origem do conhecimento',     type: 'q'       },
+  { step: 3,  label: 'Q2 — Motivação',                  type: 'q'       },
+  { step: 4,  label: 'Educação 1',                      type: 'info'    },
+  { step: 5,  label: 'Q3 — Estrutura do ensino',        type: 'q'       },
+  { step: 6,  label: 'Q4 — Resultados gerados',         type: 'q'       },
+  { step: 8,  label: 'Q5 — Precificação',               type: 'q'       },
+  { step: 9,  label: 'Q6 — Experiência de vendas',      type: 'q'       },
+  { step: 10, label: 'Espelhamento',                    type: 'info'    },
+  { step: 11, label: 'Q7 — Comprometimento',            type: 'q'       },
+  { step: 12, label: 'Formulário de captura',           type: 'capture' },
+  { step: 13, label: 'Loading / diagnóstico',           type: 'info'    },
+  { step: 14, label: 'VSL',                             type: 'vsl'     },
+];
+
+const ANSWER_LABELS = {
+  q1: 'Origem do conhecimento',
+  q2: 'Motivação para mentorar',
+  q3: 'Estrutura do ensino',
+  q5: 'Resultados gerados',
+  q6: 'Precificação',
+  q7: 'Experiência de vendas',
+  q8: 'Comprometimento',
+};
+
+/* ══════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════ */
+const AUTH_KEY = 'mdt_admin_auth';
+
+function isLoggedIn() {
+  return sessionStorage.getItem(AUTH_KEY) === '1';
+}
+
+function login(pwd) {
+  if (pwd === ADMIN_PWD_HASH) {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    return true;
+  }
+  return false;
+}
+
+function logout() {
+  sessionStorage.removeItem(AUTH_KEY);
+  location.reload();
+}
+
+/* ══════════════════════════════════════════
+   SUPABASE CLIENT
+══════════════════════════════════════════ */
+let sb;
+
+function initSupabase() {
+  if (typeof supabase === 'undefined') return null;
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  return sb;
+}
+
+/* ══════════════════════════════════════════
+   DATA LOADERS
+══════════════════════════════════════════ */
+let allLeads = [];
+
+async function loadFunnel() {
+  if (!sb) return;
+
+  // Count distinct sessions per step
+  const { data, error } = await sb
+    .from('funnel_events')
+    .select('step, session_id');
+
+  if (error) { console.error(error); return; }
+
+  // Aggregate: unique sessions per step
+  const stepMap = {};
+  for (const row of data) {
+    if (!stepMap[row.step]) stepMap[row.step] = new Set();
+    stepMap[row.step].add(row.session_id);
+  }
+
+  const stepCounts = {};
+  for (const [step, set] of Object.entries(stepMap)) {
+    stepCounts[Number(step)] = set.size;
+  }
+
+  renderFunnel(stepCounts);
+}
+
+async function loadLeads() {
+  if (!sb) return;
+
+  const { data, error } = await sb
+    .from('leads')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) { console.error(error); return; }
+
+  allLeads = data || [];
+  renderLeads(allLeads);
+}
+
+/* ══════════════════════════════════════════
+   RENDER — FUNNEL
+══════════════════════════════════════════ */
+function renderFunnel(counts) {
+  const totalVisitors = counts[0] || 0;
+  const totalLeads    = allLeads.length;
+  const vslCount      = counts[14] || 0;
+  const cvr           = totalVisitors > 0 ? ((totalLeads / totalVisitors) * 100).toFixed(1) + '%' : '—';
+
+  document.getElementById('kpi-visitors').textContent = fmt(totalVisitors);
+  document.getElementById('kpi-leads').textContent    = fmt(totalLeads);
+  document.getElementById('kpi-cvr').textContent      = cvr;
+  document.getElementById('kpi-vsl').textContent      = fmt(vslCount);
+
+  const container = document.getElementById('funnel-rows');
+  container.innerHTML = '';
+
+  const maxCount = Math.max(...STEPS.map(s => counts[s.step] || 0), 1);
+  let prevCount = null;
+
+  for (const s of STEPS) {
+    const count = counts[s.step] || 0;
+    const pct   = totalVisitors > 0 ? ((count / totalVisitors) * 100).toFixed(1) : '0.0';
+    const barW  = maxCount > 0 ? (count / maxCount * 100).toFixed(1) : '0';
+
+    let dropHtml = '<span class="drop-na">—</span>';
+    if (prevCount !== null && prevCount > 0) {
+      const drop = (((prevCount - count) / prevCount) * 100).toFixed(1);
+      const cls  = parseFloat(drop) > 30 ? 'drop-neg' : 'drop-ok';
+      dropHtml = `<span class="${cls}">−${drop}%</span>`;
+    }
+
+    const typeLabel = { q: 'Pergunta', info: 'Info', capture: 'Captura', vsl: 'VSL', start: 'Início' }[s.type];
+
+    container.insertAdjacentHTML('beforeend', `
+      <div class="funnel-row">
+        <div class="funnel-step-name">
+          ${esc(s.label)}
+          <span class="funnel-step-type type-${s.type}">${typeLabel}</span>
+        </div>
+        <div class="funnel-bar-wrap">
+          <div class="funnel-bar" style="width:${barW}%"></div>
+        </div>
+        <div class="funnel-count">${fmt(count)}</div>
+        <div class="funnel-pct">${pct}%</div>
+        <div class="funnel-drop">${dropHtml}</div>
+      </div>
+    `);
+
+    if (count > 0) prevCount = count;
+  }
+
+  const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('last-updated').textContent = `Atualizado às ${now}`;
+}
+
+/* ══════════════════════════════════════════
+   RENDER — LEADS
+══════════════════════════════════════════ */
+function renderLeads(leads) {
+  const tbody = document.getElementById('leads-tbody');
+  document.getElementById('leads-count').textContent = `${leads.length} lead${leads.length !== 1 ? 's' : ''}`;
+
+  if (leads.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="state-msg">Nenhum lead encontrado</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = leads.map((lead, i) => {
+    const answers = lead.answers || {};
+    const answerCount = Object.keys(answers).filter(k => k !== 'contact').length;
+    const date = lead.created_at
+      ? new Date(lead.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '—';
+
+    return `
+      <tr data-idx="${i}" class="lead-row">
+        <td><strong>${esc(lead.name || lead.full_name || '—')}</strong></td>
+        <td>${esc(lead.email || '—')}</td>
+        <td>${esc(lead.whatsapp || '—')}</td>
+        <td>${esc(lead.instagram || '—')}</td>
+        <td><span class="badge">${answerCount} respostas</span></td>
+        <td>${date}</td>
+      </tr>
+      <tr class="answers-row" data-for="${i}">
+        <td colspan="6">
+          <div class="answers-inner">
+            ${renderAnswers(answers)}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Expand/collapse on row click
+  tbody.querySelectorAll('.lead-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const idx = row.dataset.idx;
+      const ansRow = tbody.querySelector(`.answers-row[data-for="${idx}"]`);
+      const isOpen = ansRow.classList.contains('open');
+      // Close all
+      tbody.querySelectorAll('.answers-row').forEach(r => r.classList.remove('open'));
+      tbody.querySelectorAll('.lead-row').forEach(r => r.classList.remove('expanded'));
+      if (!isOpen) {
+        ansRow.classList.add('open');
+        row.classList.add('expanded');
+      }
+    });
+  });
+}
+
+function renderAnswers(answers) {
+  const entries = Object.entries(answers).filter(([k]) => k !== 'contact');
+  if (entries.length === 0) return '<p style="color:var(--muted);font-size:13px">Sem respostas registradas</p>';
+
+  const chips = entries.map(([key, val]) => {
+    const label = ANSWER_LABELS[key] || key;
+    const answerText = getAnswerText(key, val);
+    return `
+      <div class="answer-chip">
+        <div class="answer-chip-q">${esc(label)}</div>
+        <div class="answer-chip-a">${esc(answerText)}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `<div class="answers-grid">${chips}</div>`;
+}
+
+const ANSWER_TEXT = {
+  q1: { A:'Anos de profissão/formação', B:'Experiência própria', C:'Resultados p/ outros', D:'Combinação de tudo' },
+  q2: { A:'Nova fonte de renda', B:'Cobrar o que vale', C:'Sair da troca de tempo', D:'Liberdade e previsibilidade' },
+  q3: { A:'Passo a passo claro', B:'Tópicos sem ordem', C:'Muito, difícil organizar', D:'Conforme a pessoa precisa' },
+  q5: { A:'Transformei muitas vidas', B:'Ajudei algumas pessoas', C:'Apliquei em mim mesmo', D:'Ainda não apliquei' },
+  q6: { A:'Total segurança', B:'Vale mas travaria', C:'Não saberia justificar', D:'Precisaria saber mais' },
+  q7: { A:'Ainda não vendi', B:'Vendas avulsas', C:'Atendo sem estrutura', D:'Tenho clientes mas depende de mim' },
+  q8: { A:'Sim, é o que preciso agora', B:'Sim, mas tenho dúvidas', C:'Quero entender melhor', D:'Não estou pronto' },
+};
+
+function getAnswerText(q, val) {
+  return (ANSWER_TEXT[q] && ANSWER_TEXT[q][val]) ? `${val} — ${ANSWER_TEXT[q][val]}` : val;
+}
+
+/* ══════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════ */
+document.getElementById('search-input').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase().trim();
+  if (!q) { renderLeads(allLeads); return; }
+  const filtered = allLeads.filter(l =>
+    (l.name || '').toLowerCase().includes(q) ||
+    (l.full_name || '').toLowerCase().includes(q) ||
+    (l.email || '').toLowerCase().includes(q) ||
+    (l.instagram || '').toLowerCase().includes(q) ||
+    (l.whatsapp || '').includes(q)
+  );
+  renderLeads(filtered);
+});
+
+/* ══════════════════════════════════════════
+   EXPORT CSV
+══════════════════════════════════════════ */
+document.getElementById('export-csv-btn').addEventListener('click', () => {
+  if (!allLeads.length) return;
+
+  const headers = ['Nome', 'Email', 'WhatsApp', 'Instagram', 'Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Data'];
+  const rows = allLeads.map(l => {
+    const a = l.answers || {};
+    return [
+      csvVal(l.full_name || l.name),
+      csvVal(l.email),
+      csvVal(l.whatsapp),
+      csvVal(l.instagram),
+      csvVal(a.q1), csvVal(a.q2), csvVal(a.q3),
+      csvVal(a.q5), csvVal(a.q6), csvVal(a.q7), csvVal(a.q8),
+      csvVal(l.created_at ? new Date(l.created_at).toLocaleString('pt-BR') : ''),
+    ].join(',');
+  });
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `leads-mdt-${Date.now()}.csv` });
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* ══════════════════════════════════════════
+   TABS
+══════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`panel-${tab}`).classList.add('active');
+  });
+});
+
+/* ══════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════ */
+function showApp() {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initSupabase();
+  loadFunnel();
+  loadLeads();
+}
+
+document.getElementById('login-btn').addEventListener('click', () => {
+  const pwd = document.getElementById('pwd-input').value;
+  if (login(pwd)) {
+    showApp();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+});
+
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+document.getElementById('refresh-btn').addEventListener('click', () => {
+  document.getElementById('funnel-rows').innerHTML = '<div class="state-msg"><div class="spinner"></div>Atualizando…</div>';
+  document.getElementById('leads-tbody').innerHTML = '<tr><td colspan="6"><div class="state-msg"><div class="spinner"></div>Atualizando…</div></td></tr>';
+  loadFunnel();
+  loadLeads();
+});
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+if (isLoggedIn()) showApp();
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function fmt(n) { return Number(n).toLocaleString('pt-BR'); }
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function csvVal(v) { const s = String(v ?? '').replace(/"/g,'""'); return `"${s}"`; }
+</script>
+</body>
+</html>
