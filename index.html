@@ -1095,6 +1095,19 @@
     text-align: center;
   }
 
+  /* Enquanto o timer de 15 min não terminou, esconde tudo exceto o player */
+  .vsl-screen.vsl-locked .headline,
+  .vsl-screen.vsl-locked .lead,
+  .vsl-screen.vsl-locked .vsl-cta-wrap,
+  .vsl-screen.vsl-locked .proof-section {
+    display: none !important;
+  }
+
+  /* Remove espaçamento extra do player quando tudo está escondido */
+  .vsl-screen.vsl-locked .vsl-player {
+    margin-top: 0;
+  }
+
   .vsl-badge {
     display: inline-flex;
     align-items: center;
@@ -1916,36 +1929,6 @@
       </div>
     </section>
 
-    <!-- ====== CAPTURA ====== -->
-    <section class="screen" data-step="12">
-      <h2 class="question">Sua avaliação está pronta.</h2>
-      <p class="lead">Informe seus dados para ver quanto vale o seu conhecimento hoje, e o plano para faturar seus primeiros R$30.000.</p>
-      <form class="form-fields" id="captureForm" novalidate>
-        <div class="field">
-          <label for="userName">Como prefere ser chamada(o)?</label>
-          <input type="text" id="userName" name="name" placeholder="Seu primeiro nome" autocomplete="given-name" required />
-        </div>
-        <div class="field">
-          <label for="email">Melhor e-mail</label>
-          <input type="email" id="email" name="email" placeholder="seu@email.com" required />
-        </div>
-        <div class="field">
-          <label for="whatsapp">WhatsApp</label>
-          <input type="tel" id="whatsapp" name="whatsapp" placeholder="(00) 00000-0000" required />
-        </div>
-        <div class="field">
-          <label for="instagram">Instagram</label>
-          <input type="text" id="instagram" name="instagram" placeholder="@seuusuario" required />
-        </div>
-      </form>
-      <div class="nav-row">
-        <button class="back-btn" data-back>← Voltar</button>
-        <button class="cta" id="submitCapture">
-          Ver minha avaliação
-          <span class="arrow">→</span>
-        </button>
-      </div>
-    </section>
 
     <!-- ====== LOADING / DIAGNÓSTICO ====== -->
     <section class="screen loading-screen" data-step="13">
@@ -2068,6 +2051,64 @@
   }
 
 
+  // ===== VSL 15-min delay =====
+  let vslTimerInitialized = false;
+
+  function setupVslTimer() {
+    if (vslTimerInitialized) return;
+    vslTimerInitialized = true;
+
+    const DELAY = 15 * 60 * 1000; // 15 minutos em ms
+    const vslScreen = document.querySelector('.vsl-screen');
+    if (!vslScreen) return;
+
+    // Aplica o lock: só o player aparece
+    vslScreen.classList.add('vsl-locked');
+
+    let timerStarted = false;
+
+    function startTimer() {
+      if (timerStarted) return;
+      timerStarted = true;
+      setTimeout(() => vslScreen.classList.remove('vsl-locked'), DELAY);
+    }
+
+    function attach() {
+      const el = document.getElementById('vid-6a2d4c93f1639bbd69b19b8c');
+      if (!el) return false;
+
+      // Eventos diretos no elemento (vturb-smartplayer)
+      ['play', 'playing', 'smartplayer:play'].forEach(evt =>
+        el.addEventListener(evt, startTimer)
+      );
+      // Evento disparado no document por algumas versões do vturb
+      document.addEventListener('smartplayer:play', startTimer);
+
+      // Polling de fallback: tenta acessar o <video> interno (shadow DOM aberto ou light DOM)
+      const poll = setInterval(() => {
+        const root = el.shadowRoot || el;
+        const vid = root.querySelector ? root.querySelector('video') : null;
+        if (vid && vid.currentTime > 0 && !vid.paused) {
+          clearInterval(poll);
+          startTimer();
+        } else if (!vid && el.currentTime > 0) {
+          clearInterval(poll);
+          startTimer();
+        }
+      }, 2000);
+
+      // Limpa polling após 3 horas (nunca deu play)
+      setTimeout(() => clearInterval(poll), 3 * 60 * 60 * 1000);
+      return true;
+    }
+
+    // Tenta conectar ao player assim que ele existir no DOM (carregado assíncrono)
+    let tries = 0;
+    const waitPlayer = setInterval(() => {
+      if (attach() || ++tries > 40) clearInterval(waitPlayer);
+    }, 500);
+  }
+
   function go(step) {
     if (step < 0 || step >= totalSteps) return;
     screens[currentStep].classList.remove('active');
@@ -2076,6 +2117,11 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (screens[currentStep].classList.contains('vsl-screen')) {
       loadVturbPlayer();
+      setupVslTimer();
+    }
+    // Loading screen: roda animação e avança automaticamente para a VSL
+    if (screens[currentStep].classList.contains('loading-screen')) {
+      runDiagnosticAnimation().then(() => go(currentStep + 1));
     }
     const dataStep = parseInt(screens[currentStep].dataset.step ?? step, 10);
     trackStep(dataStep);
