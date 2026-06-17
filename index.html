@@ -2174,6 +2174,9 @@
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvanpxaWFzdm1lZW9ramdtZ3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwODE3NDIsImV4cCI6MjA5NDY1Nzc0Mn0.zuPbysNJJ4D3cN-Jl7IXF_vWG75s1v9rKTg2vCfHeLo';
   const SB_HEADERS = { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
 
+  // Bot detection — headless browsers expose navigator.webdriver
+  const isBot = navigator.webdriver === true;
+
   // Persistent device ID — localStorage so same device = same ID across tabs/sessions
   let sessionId = localStorage.getItem('mdt_session');
   if (!sessionId) {
@@ -2188,6 +2191,7 @@
   }
 
   function trackStep(step) {
+    if (isBot) return;
     const tracked = _trackedSteps();
     if (tracked.has(step)) return;
     tracked.add(step);
@@ -2223,8 +2227,16 @@
     }).catch(() => {});
   }
 
-  // Track initial page view (step 0)
-  trackStep(0);
+  // Track step 0 only after first real human interaction (bots don't scroll/click/touch)
+  let step0Tracked = false;
+  function trackStep0() {
+    if (step0Tracked) return;
+    step0Tracked = true;
+    trackStep(0);
+  }
+  ['mousedown', 'touchstart', 'scroll', 'keydown'].forEach(evt =>
+    window.addEventListener(evt, trackStep0, { once: true, passive: true })
+  );
 
   // ===== LocalStorage helpers =====
   const STORAGE_KEY = 'mdt_quiz_user';
