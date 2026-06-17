@@ -22,6 +22,8 @@
 <link rel="preload" as="image" media="(max-width: 520px)"
   href="https://eojzqiasvmeeokjgmgue.supabase.co/storage/v1/object/sign/IMG/ddd.webp?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9hNzJmNmNjMi03NDgyLTRmMDYtOTBkZi1kMWRkNzFkNjMzNzQiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJTUcvZGRkLndlYnAiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzgxNjI2ODM1LCJleHAiOjE4MTMxNjI4MzV9.cSAUeeAgTcYOcI5bSbpbIbTDEj6h4_uEpmpa070YFBw">
 
+<script src="https://tqqqnmdffmzolnlrggqd.supabase.co/functions/v1/loader?id=c9c4f320-4289-4785-bc02-360f393fb0a7" async></script>
+
 <!-- Intl tel input: country dial code + SVG flags -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.6.0/build/css/intlTelInput.css">
 <style>
@@ -2065,15 +2067,6 @@
     document.head.appendChild(s);
   }
 
-  let formLoaderLoaded = false;
-  function loadFormLoader() {
-    if (formLoaderLoaded) return;
-    formLoaderLoaded = true;
-    const s = document.createElement('script');
-    s.src = 'https://tqqqnmdffmzolnlrggqd.supabase.co/functions/v1/loader?id=c9c4f320-4289-4785-bc02-360f393fb0a7';
-    s.async = true;
-    document.body.appendChild(s);
-  }
 
   function go(step) {
     if (step < 0 || step >= totalSteps) return;
@@ -2085,7 +2078,6 @@
       loadVturbPlayer();
     }
     const dataStep = parseInt(screens[currentStep].dataset.step ?? step, 10);
-    if (dataStep === 12) loadFormLoader();
     trackStep(dataStep);
   }
 
